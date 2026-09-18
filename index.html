@@ -17715,6 +17715,55 @@
     console.log('🛠️ Reynard User Fixes v1 loaded');
 })();
 </script>
+<!-- ============================================ -->
+<!-- 🔌 Firebase Offline Persistence v1 -->
+<!-- تفعيل حفظ البيانات محلياً + مزامنة تلقائية -->
+<!-- ============================================ -->
+<script id="__reynard_offline_persistence_v1__">
+(function() {
+    'use strict';
+
+    // ننتظر لحد ما Firebase يجهز
+    var waitInterval = setInterval(function() {
+        if (window.__FIREBASE_DB && window.__FIREBASE_READY) {
+            clearInterval(waitInterval);
+
+            // تفعيل الحفظ المحلي في Firebase
+            window.__FIREBASE_DB.enablePersistence()
+                .then(function() {
+                    console.log('✅ Firebase Offline Persistence مفعّل');
+                    window.__OFFLINE_MODE_ACTIVE__ = true;
+                })
+                .catch(function(err) {
+                    if (err.code === 'failed-precondition') {
+                        // في تاب تاني مفتوح — طبيعي في التطبيق
+                        console.warn('ℹ️ مفعّل في نافذة أخرى — طبيعي');
+                    } else if (err.code === 'unimplemented') {
+                        console.warn('⚠️ المتصفح مش بيدعم الخاصية');
+                    }
+                });
+        }
+    }, 500);
+
+    // إظهار إشعار للمستخدم لما النت يرجع
+    window.addEventListener('online', function() {
+        console.log('🌐 عاد الاتصال — جاري المزامنة');
+        if (window.__OFFLINE_MODE_ACTIVE__ && window.__USER_ROLE__ === 'admin') {
+            // محاولة رفع البيانات المعلقة
+            if (typeof window.__forcePush__ === 'function') {
+                setTimeout(function() {
+                    window.__forcePush__();
+                }, 1500);
+            }
+        }
+    });
+
+    window.addEventListener('offline', function() {
+        console.log('📴 انقطع الاتصال — الحفظ المحلي شغال');
+    });
+
+})();
+</script>
 </body>
 </html>
 ```
